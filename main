@@ -1,0 +1,114 @@
+--[[
+MatrixHub Da Hood GUI with Whitelist Ignore System
+By: You | Works with Delta Executor (Android)
+--]]
+
+-- 🔐 Aimbot Ignore Whitelist
+local aimWhitelist = {
+    ["LostInJapan"] = true,
+    ["Traxs"] = true,
+    ["myth"] = true
+}
+
+local player = game.Players.LocalPlayer
+local mouse = player:GetMouse()
+
+-- 🖥️ Create GUI
+local gui = Instance.new("ScreenGui", game.CoreGui)
+gui.Name = "MatrixHub"
+gui.ResetOnSpawn = false
+
+-- 🪟 Main Frame
+local main = Instance.new("Frame", gui)
+main.Size = UDim2.new(0, 500, 0, 350)
+main.Position = UDim2.new(0.5, -250, 0.5, -175)
+main.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+main.BorderSizePixel = 0
+main.Active = true
+main.Draggable = true
+
+Instance.new("UICorner", main).CornerRadius = UDim.new(0, 6)
+
+-- 🧭 Tabs
+local tabs = {"Visual", "Aimbot", "Misc", "Whitelist", "Teleport"}
+local tabButtons = {}
+local currentTab
+
+for i, name in ipairs(tabs) do
+    local btn = Instance.new("TextButton", main)
+    btn.Size = UDim2.new(0, 80, 0, 30)
+    btn.Position = UDim2.new(0, (i - 1) * 82 + 5, 0, 5)
+    btn.Text = name
+    btn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    btn.TextColor3 = Color3.new(1, 1, 1)
+    btn.BorderSizePixel = 0
+    tabButtons[name] = btn
+end
+
+-- 📦 Aimbot Tab
+local aimbotFrame = Instance.new("Frame", main)
+aimbotFrame.Size = UDim2.new(1, -10, 1, -45)
+aimbotFrame.Position = UDim2.new(0, 5, 0, 40)
+aimbotFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+aimbotFrame.Visible = true
+
+local aimbotLabel = Instance.new("TextLabel", aimbotFrame)
+aimbotLabel.Text = "Silent Aim: OFF"
+aimbotLabel.Size = UDim2.new(0, 200, 0, 30)
+aimbotLabel.Position = UDim2.new(0, 10, 0, 10)
+aimbotLabel.TextColor3 = Color3.new(1, 1, 1)
+aimbotLabel.BackgroundTransparency = 1
+aimbotLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+local toggle = Instance.new("TextButton", aimbotFrame)
+toggle.Text = "Toggle"
+toggle.Size = UDim2.new(0, 60, 0, 25)
+toggle.Position = UDim2.new(0, 220, 0, 10)
+toggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+toggle.TextColor3 = Color3.new(1, 1, 1)
+
+-- 🔫 Silent Aim Logic
+local silentAim = false
+
+toggle.MouseButton1Click:Connect(function()
+    silentAim = not silentAim
+    aimbotLabel.Text = "Silent Aim: " .. (silentAim and "ON" or "OFF")
+end)
+
+-- 🎯 Aimbot Targeting Function (Respects Whitelist)
+local function getNearestTarget()
+    local closest = nil
+    local shortest = math.huge
+
+    for _, target in pairs(game.Players:GetPlayers()) do
+        if target ~= player and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+            if not aimWhitelist[target.Name] then
+                local pos = workspace.CurrentCamera:WorldToViewportPoint(target.Character.HumanoidRootPart.Position)
+                local dist = (Vector2.new(pos.X, pos.Y) - Vector2.new(mouse.X, mouse.Y)).Magnitude
+                if dist < shortest then
+                    shortest = dist
+                    closest = target
+                end
+            end
+        end
+    end
+
+    return closest
+end
+
+-- 🧠 Example: Use target in your aim logic
+game:GetService("RunService").RenderStepped:Connect(function()
+    if silentAim then
+        local target = getNearestTarget()
+        -- Add your lock-on logic here using `target`
+        -- Example: you can aim at target.Character.Head
+    end
+end)
+
+-- 🔁 Tab Switching
+for name, btn in pairs(tabButtons) do
+    btn.MouseButton1Click:Connect(function()
+        aimbotFrame.Visible = (name == "Aimbot")
+        -- Add more frames/tabs and make only one visible at a time
+    end)
+end
